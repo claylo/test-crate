@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "test-crate")]
-#[command(about = "", long_about = None)]
+#[command(about = "how about this crate?", long_about = None)]
 #[command(version)]
 pub struct Cli {
     #[command(subcommand)]
