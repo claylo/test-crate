@@ -72,3 +72,7 @@ script = """#!/bin/sh
 set -e
 cargo test
 """
+
+[packages]
+test-crate = { path = "crates/test-crate" }
+test-crate-core = { path = "crates/test-crate-core" }
