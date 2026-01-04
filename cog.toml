@@ -1,0 +1,74 @@
+# https://docs.cocogitto.io/
+
+ignore_merge_commits = true
+branch_whitelist = ["main"]
+tag_prefix = "v"
+pre_bump_hooks = [
+  "echo 'bumping from  to '",
+  "cargo set-version ",
+  "cargo check --release",
+  "git add :/Cargo.lock" # omit for library-only projects
+]
+
+post_bump_hooks = [
+  "git push",
+  '''
+  awk '/^## \[\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md > /tmp/release-notes.md
+  gh release create v --draft --title "v" -F /tmp/release-notes.md
+  ''',
+]
+
+#
+# Changelog generation
+# https://docs.cocogitto.io/guide/changelog.html
+#
+[changelog]
+path = "CHANGELOG.md"
+remote = "github.com"
+template = "monorepo_remote"
+package_template = "package_remote"
+repository = "test-crate"
+owner = "claylo"
+authors = [
+  { signature = "clay@loveless.net", username = "claylo" },
+  { signature = "Clay Loveless", username = "claylo" }
+]
+
+# An optional list of additional allowed commit type
+# `cog commit {commit_type}` commit command will be generated at runtime
+[commit_types]
+chore = { omit_from_changelog = true }
+test = { omit_from_changelog = true }
+
+#
+# Commit Hook Management
+# https://docs.cocogitto.io/guide/git_hooks.html
+#
+# I will decide when and where I want to give Claude Code credit.
+[git_hooks.commit-msg]
+script = '''#!/bin/sh
+set -e
+
+perl -i -ne 'print unless /Generated with \[Claude Code\]|^Co-Authored-By:\s*Claude/i' "$1"
+
+perl -i -0777 -pe '
+  s/[ \t]+$//mg;     # trim trailing whitespace per line
+  s/\n{3,}/\n\n/g;   # collapse 3+ newlines to 2
+  s/\n*\z/\n/;       # ensure exactly one final newline
+' "$1"
+
+cog verify --file "$1"
+'''
+
+[git_hooks.pre-commit]
+script = """#!/bin/sh
+set -e
+cargo fmt --all --check
+cargo clippy -- -D warnings
+"""
+
+[git_hooks.pre-push]
+script = """#!/bin/sh
+set -e
+cargo test
+"""
