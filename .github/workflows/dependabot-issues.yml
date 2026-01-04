@@ -1,4 +1,4 @@
-name: dependabot-issues
+name: Dependabot via Issues
 
 on:
   schedule:
