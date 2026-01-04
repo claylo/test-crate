@@ -1,4 +1,4 @@
-name: Bump Version
+name: Bump and Draft
 
 on:
   workflow_dispatch:
@@ -39,8 +39,8 @@ jobs:
           # Set the default
           echo "bumpable=false" >> "$GITHUB_OUTPUT"
 
-          if git tag --sort=-v:refname >/dev/null 2>&1; then
-            base="$(git tag --sort=-v:refname | head -n 1)"
+          base="$(git tag --sort=-v:refname | head -n 1)"
+          if [ -n "$base" ]; then
             range="${base}..HEAD"
           else
             range="HEAD"
